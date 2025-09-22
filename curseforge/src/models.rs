@@ -26,11 +26,11 @@ pub struct Game {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GameAssets {
     #[serde(rename = "iconUrl")]
-    pub icon_url: String,
+    pub icon_url: Option<String>,
     #[serde(rename = "tileUrl")]
-    pub tile_url: String,
+    pub tile_url: Option<String>,
     #[serde(rename = "coverUrl")]
-    pub cover_url: String,
+    pub cover_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
