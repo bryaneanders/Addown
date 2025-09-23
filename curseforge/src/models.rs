@@ -41,11 +41,13 @@ pub struct ModResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModArrayResponse {
     pub data: Vec<Mod>,
+    pub pagination: Pagination,
 }
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Mod {
-    pub screenshots: Vec<String>,
+    pub screenshots: Vec<Screenshot>,
     pub id: u32,
     #[serde(rename = "gameId")]
     pub game_id: u32,
@@ -64,7 +66,7 @@ pub struct Mod {
     #[serde(rename = "classId")]
     pub class_id: u32,
     pub authors: Vec<Author>,
-    pub logo: ModLogo,
+    pub logo: Option<ModLogo>,
     #[serde(rename = "mainFileId")]
     pub main_file_id: u32,
     #[serde(rename = "latestFiles")]
@@ -86,7 +88,7 @@ pub struct Mod {
     #[serde(rename = "isAvailable")]
     pub is_available: bool,
     #[serde(rename = "hasCommentsEnabled")]
-    pub has_comments_enabled: bool,
+    pub has_comments_enabled: Option<bool>,
     #[serde(rename = "thumbsUpCount")]
     pub thumbs_up_count: u32,
     #[serde(rename = "featuredProjectTag")]
@@ -96,7 +98,7 @@ pub struct Mod {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModLinks {
     #[serde(rename = "websiteUrl")]
-    pub website_url: String,
+    pub website_url: Option<String>,
     #[serde(rename = "wikiUrl")]
     pub wiki_url: Option<String>,
     #[serde(rename = "issuesUrl")]
@@ -131,7 +133,7 @@ pub struct Author {
     pub name: String,
     pub url: String,
     #[serde(rename = "avatarUrl")]
-    pub avatar_url: String,
+    pub avatar_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -140,7 +142,7 @@ pub struct ModLogo {
     #[serde(rename = "modId")]
     pub mod_id: u32,
     pub title: String,
-    pub description: String,
+    pub description: Option<String>,
     #[serde(rename = "thumbnailUrl")]
     pub thumbnail_url: String,
     pub url: String,
@@ -171,14 +173,14 @@ pub struct ModFile {
     #[serde(rename = "downloadCount")]
     pub download_count: u32,
     #[serde(rename = "fileSizeOnDisk")]
-    pub file_size_on_disk: u64,
+    pub file_size_on_disk: Option<u64>,
     #[serde(rename = "downloadUrl")]
-    pub download_url: String,
+    pub download_url: Option<String>,
     #[serde(rename = "gameVersions")]
     pub game_versions: Vec<String>,
     #[serde(rename = "sortableGameVersions")]
     pub sortable_game_versions: Vec<GameVersion>,
-    pub dependencies: Vec<String>,
+    pub dependencies: Vec<Dependency>,
     #[serde(rename = "alternateFileId")]
     pub alternate_file_id: u32,
     #[serde(rename = "isServerPack")]
@@ -225,4 +227,35 @@ pub struct FileIndex {
     pub release_type: u32,
     #[serde(rename = "gameVersionTypeId")]
     pub game_version_type_id: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Screenshot {
+    pub id: u32,
+    #[serde(rename = "modId")]
+    pub mod_id: u32,
+    pub title: String,
+    pub description: Option<String>,
+    #[serde(rename = "thumbnailUrl")]
+    pub thumbnail_url: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Pagination {
+    pub index: u32,
+    #[serde(rename = "pageSize")]
+    pub page_size: u32,
+    #[serde(rename = "resultCount")]
+    pub result_count: u32,
+    #[serde(rename = "totalCount")]
+    pub total_count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dependency {
+    #[serde(rename = "modId")]
+    pub mod_id: u32,
+    #[serde(rename = "relationType")]
+    pub relation_type: u32,
 }

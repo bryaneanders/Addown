@@ -1,4 +1,4 @@
-use crate::models::{Game, GameResponse, GameArrayResponse, Mod, ModResponse};
+use crate::models::{Game, GameResponse, GameArrayResponse, Mod, ModArrayResponse, ModResponse};
 use crate::config::CurseForgeConfig;
 
 pub async fn get_game_info(
@@ -59,4 +59,30 @@ pub async fn get_mod_info(
     let mod_response: ModResponse = serde_json::from_str(&response_text)?;
     let mod_info = mod_response.data;
     Ok(mod_info)
+}
+
+pub async fn search_mods(
+    game_id: i32,
+    search_filter: &str,
+) -> Result<Vec<Mod>, Box<dyn std::error::Error>> {
+    let config = CurseForgeConfig::get();
+    let client = reqwest::Client::new();
+    let url = format!(
+        "https://api.curseforge.com/v1/mods/search?gameId={}&searchFilter={}",
+        game_id, search_filter
+    );
+
+    let response = client
+        .get(&url)
+        .header("x-api-key", &config.api_key)
+        .header("accept", "application/json")
+        .send()
+        .await?;
+
+    let response_text = response.text().await?;
+    //println!("Search API Response: {}", response_text);
+    let mods_response: ModArrayResponse = serde_json::from_str(&response_text)?;
+    let mods = mods_response.data;
+
+    Ok(mods)
 }
