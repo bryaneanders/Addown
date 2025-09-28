@@ -49,7 +49,7 @@ let game = curseforge_api::get_game_info(1).await.unwrap();
     }
 
     let mut table = mod_table::ModTable::new();
-    table.populate_mod_table(game_mods).unwrap();
+    table.populate_mods_table(game_mods).unwrap();
     table.printstd();
 
     installed_mods::get_installed_mods().await.unwrap();
