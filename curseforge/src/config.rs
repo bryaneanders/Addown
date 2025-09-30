@@ -25,6 +25,10 @@ impl CurseForgeConfig {
         })
     }
 
+    pub fn addons_path(&self) -> String {
+        format!("{}{}", self.wow_path, self.path_suffix)
+    }
+
     pub fn get() -> &'static CurseForgeConfig {
         CONFIG.get_or_init(|| Self::from_env().expect("Failed to load configuration"))
     }

@@ -291,30 +291,9 @@ pub async fn execute_command(
                 println!("Getting addons with ids: {}", ids);
                 for id in ids.split(',') {
                     if let Ok(id_num) = id.trim().parse::<u32>() {
-                        println!("Getting addon with id: {}", id_num);
                         let game_mod = curseforge_api::get_mod_info(id_num).await.unwrap();
-                        println!("\nMod: {} ({}), by {}", game_mod.name, game_mod.id, game_mod.authors[0].name);
-                        println!("\nMod: {:?} ", game_mod.latest_files);
-                        println!("\nMod URL: {:?}", game_mod.latest_files[0].download_url);
-
                         // Download the file
-                        if let Some(download_url) = &game_mod.latest_files[0].download_url {
-                            println!("Downloading file from: {}", download_url);
-
-                            let response = reqwest::get(download_url).await.unwrap();
-                            let filename = &game_mod.latest_files[0].file_name;
-
-                            let bytes = response.bytes().await.unwrap();
-                            std::fs::write(filename, bytes).unwrap();
-
-                            println!(
-                                "Downloaded {} ({} bytes)",
-                                filename,
-                                std::fs::metadata(filename).unwrap().len()
-                            );
-                        } else {
-                            println!("No download URL available for this file");
-                        }
+                        curseforge_api::get_mod_file(game_mod.latest_files[0].id, &game_mod.latest_files[0].file_name).await.unwrap();
                     } else {
                         println!("Invalid id: {}", id);
                     }
@@ -359,7 +338,7 @@ pub async fn execute_command(
     }
 }
 
-/// Handles commands like `prompt -p "what is 2+2?"`
+/// Handles commands like `get -n "Details! Damage Meter"`
 fn parse_quoted_args(input: &str) -> Vec<String> {
     let mut args = Vec::new();
     let mut current_arg = String::new();
