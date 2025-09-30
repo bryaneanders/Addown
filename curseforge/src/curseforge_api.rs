@@ -42,7 +42,7 @@ pub async fn get_games_info() -> Result<Vec<Game>, Box<dyn std::error::Error>> {
 }
 
 pub async fn get_mod_info(
-    mod_id: i32,
+    mod_id: u32,
 ) -> Result<Mod, Box<dyn std::error::Error>> {
     let config = CurseForgeConfig::get();
     let client = reqwest::Client::new();
