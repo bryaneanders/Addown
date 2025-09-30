@@ -251,16 +251,26 @@ pub async fn execute_command(
     ctrl_c_state: &Arc<Mutex<CtrlCState>>,
 ) -> anyhow::Result<bool> {
 
+    {
+        let mut state = ctrl_c_state.lock().unwrap();
+        state.command_in_progress = true;
+        state.interrupt_command = false;
+    }
+
+    print!("\x1b[2K\r\x1b[?25l"); // Clear current line and move up
+    io::stdout().flush()?;
+
     match command {
         Commands::Init => {
             println!("Initializing WoW installation...");
             // Call your init function here
+            reset_prompt(ctrl_c_state).await;
             Ok(true)
         }
         Commands::View => {
             println!("Viewing installed addons...");
             installed_mods::get_installed_mods().await.unwrap();
-            // Call your view function here
+            reset_prompt(ctrl_c_state).await;
             Ok(true)
         }
         Commands::Search { name, id } => {
@@ -281,6 +291,8 @@ pub async fn execute_command(
             } else {
                 println!("Please provide either a name or an id to search for.");
             }
+
+            reset_prompt(ctrl_c_state).await;
             Ok(true)
         }
         Commands::Get { name, ids } => {
@@ -301,6 +313,8 @@ pub async fn execute_command(
             } else {
                 println!("Please provide either a name or ids to get.");
             }
+
+            reset_prompt(ctrl_c_state).await;
             Ok(true)
         }
         Commands::Delete { name, ids } => {
@@ -313,6 +327,8 @@ pub async fn execute_command(
             } else {
                 println!("Please provide either a name or ids to delete.");
             }
+
+            reset_prompt(ctrl_c_state).await;
             Ok(true)
         }
         Commands::Update { name, ids, all } => {
@@ -328,13 +344,27 @@ pub async fn execute_command(
             } else {
                 println!("Please provide either a name, ids, or use --all to update.");
             }
+
+            reset_prompt(ctrl_c_state).await;
             Ok(true)
         }
         Commands::Exit => {
             println!("Exiting...");
             Ok(false)
-            //
         }
+    }
+}
+
+//async fn reset_prompt(progress_task: JoinHandle<()>, ctrl_c_state: &Arc<Mutex<CtrlCState>>) {
+async fn reset_prompt(ctrl_c_state: &Arc<Mutex<CtrlCState>>) {
+    //progress_task.abort();
+    print!("\r\x1b[32mAddown>\x1b[97m\x1b[?25h "); // Show prompt and cursor≥
+    io::stdout().flush().unwrap();
+
+    {
+        let mut state = ctrl_c_state.lock().unwrap();
+        state.command_in_progress = false;
+        state.interrupt_command = false;
     }
 }
 
@@ -489,7 +519,7 @@ pub fn create_ctrlc_background_loop(
                 if let Some(last_time) = state.last_time {
                     if Instant::now().duration_since(last_time) >= ctrl_c_timeout {
                         // Clear the message
-                        print!("\x1b[2K\x1b[1A\x1b[2K\r\x1b[32maddown>\x1b[97m\x1b[?25h "); // Show prompt and cursor
+                        print!("\x1b[2K\x1b[1A\x1b[2K\r\x1b[32mAddown>\x1b[97m\x1b[?25h "); // Show prompt and cursor
                         io::stdout().flush().unwrap();
                         state.showing_message = false;
                         state.last_time = None;

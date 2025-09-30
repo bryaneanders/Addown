@@ -12,7 +12,7 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
     for entry in entries {
         let entry = entry?;
         if entry.path().is_dir() {
-            println!("{}", entry.file_name().to_string_lossy());
+            //println!("{}", entry.file_name().to_string_lossy());
             let files = std::fs::read_dir(entry.path())?;
             for file in files {
                 let file = file?;
@@ -26,7 +26,7 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
                     let mut version = String::new();
                     let mut notes = String::new();
 
-                    println!("  - {}", file.file_name().to_string_lossy());
+                    //println!("  - {}", file.file_name().to_string_lossy());
                     // read the file and print the title and version
                     let content = std::fs::read_to_string(file.path())?;
                     for line in content.lines() {
@@ -37,20 +37,20 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
                                 Ok(id) => { project_id = id },
                                 Err(_) => { project_id = 0; },
                             }
-                            println!("    - Curse Project ID: {}", project_id);
+                            //println!("    - Curse Project ID: {}", project_id);
                         }
                         if line.starts_with("## Title:") {
                             title = line.replace("## Title:", "").trim().to_string();
                             title = title.replace("[|cffeda55f", "").replace("|cffFFFFFFM", "").replace("|r", "").replace("]", "");
-                            println!("    - Title: {}", title);
+                            //println!("    - Title: {}", title);
                         }
                         if line.starts_with("## Version:") {
                             version = line.replace("## Version:", "").trim().to_string();
-                            println!("    - Version: {}", version);
+                            //println!("    - Version: {}", version);
                         }
                         if line.starts_with("## Notes:") {
                             notes = line.replace("## Notes:", "").trim().to_string();
-                            println!("    - Notes: {}", notes);
+                            //println!("    - Notes: {}", notes);
                         }
                     }
 
