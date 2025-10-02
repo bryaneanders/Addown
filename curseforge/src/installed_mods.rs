@@ -1,8 +1,8 @@
-use std::fs;
-use regex::Regex;
 use crate::config::CurseForgeConfig;
 use crate::curseforge_api;
 use crate::mod_table::*;
+use regex::Regex;
+use std::fs;
 
 pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
     let config = CurseForgeConfig::get();
@@ -16,7 +16,6 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
     for entry in entries {
         let entry = entry?;
         if entry.path().is_dir() {
-
             let mut dependency_dir = false;
             let files = fs::read_dir(entry.path())?;
             for file in files {
@@ -37,7 +36,9 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
                     // read the file and print the title and version
                     let content = std::fs::read_to_string(file.path())?;
                     for line in content.lines() {
-                        if line.starts_with("## RequiredDeps:") || line.starts_with("## Dependencies:") {
+                        if line.starts_with("## RequiredDeps:")
+                            || line.starts_with("## Dependencies:")
+                        {
                             //println!("Dep directory: {}", file.path().to_string_lossy());
                             dependency_dir = true;
                             break;
@@ -56,10 +57,7 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
                         }
                         if line.starts_with("## Title:") {
                             title = line.replace("## Title:", "").trim().to_string();
-                            title = title
-                                .replace("[", "")
-                                .replace("|r", "")
-                                .replace("]", "");
+                            title = title.replace("[", "").replace("|r", "").replace("]", "");
                             title = re.replace_all(&title, "").to_string();
                             //println!("    - Title: {}", title);
                         }
@@ -92,11 +90,14 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
 
                     // handle getting version differently. Preferring the changelog version because that is more likely to match the archive name
                     if file.file_name().into_string().unwrap().as_str() == "CHANGELOG.md" {
-                        changelog_version = get_changelog_md_version(file.path().to_string_lossy().to_string());
+                        changelog_version =
+                            get_changelog_md_version(file.path().to_string_lossy().to_string());
                     } else if file.file_name().into_string().unwrap().as_str() == "CHANGELOG.txt" {
-                        changelog_version = get_changelog_txt_version(file.path().to_string_lossy().to_string());
+                        changelog_version =
+                            get_changelog_txt_version(file.path().to_string_lossy().to_string());
                     } else if file.file_name().into_string().unwrap().as_str() == "Changelog.lua" {
-                        changelog_version = get_changelog_lua_version(file.path().to_string_lossy().to_string());
+                        changelog_version =
+                            get_changelog_lua_version(file.path().to_string_lossy().to_string());
                     }
 
                     if project_id == 0 {
@@ -128,7 +129,14 @@ fn get_changelog_md_version(path: String) -> String {
     let lines = content.lines();
     for line in lines {
         if line.starts_with("## [") {
-            return line.split("[").nth(1).unwrap().split("]").nth(0).unwrap().to_string();
+            return line
+                .split("[")
+                .nth(1)
+                .unwrap()
+                .split("]")
+                .nth(0)
+                .unwrap()
+                .to_string();
         }
     }
     String::new()
