@@ -1,5 +1,5 @@
-use std::str::SplitWhitespace;
 use crate::models::Mod;
+use std::str::SplitWhitespace;
 
 pub enum ModRow {
     Header {
@@ -19,7 +19,13 @@ pub enum ModRow {
 }
 
 impl ModRow {
-    pub fn new_header(id: impl Into<String>, name: impl Into<String>, version: impl Into<String>, summary: impl Into<String>, download_count: impl Into<String>) -> Self {
+    pub fn new_header(
+        id: impl Into<String>,
+        name: impl Into<String>,
+        version: impl Into<String>,
+        summary: impl Into<String>,
+        download_count: impl Into<String>,
+    ) -> Self {
         Self::Header {
             id: id.into(),
             name: name.into(),
@@ -29,7 +35,13 @@ impl ModRow {
         }
     }
 
-    pub fn new_data(id: u32, name: impl Into<String>, version: impl Into<String>, summary: impl Into<String>, download_count: u32) -> Self {
+    pub fn new_data(
+        id: u32,
+        name: impl Into<String>,
+        version: impl Into<String>,
+        summary: impl Into<String>,
+        download_count: u32,
+    ) -> Self {
         Self::Data {
             id,
             name: name.into(),
@@ -41,18 +53,33 @@ impl ModRow {
 
     pub fn format_row(&self) -> String {
         match self {
-            ModRow::Header { id, name, version, summary, download_count } => {
-                format!("| {:<12} | {:<30} | {:<30} | {:<50} | {:<14} |", id, name, version, summary, download_count)
+            ModRow::Header {
+                id,
+                name,
+                version,
+                summary,
+                download_count,
+            } => {
+                format!(
+                    "| {:<12} | {:<30} | {:<30} | {:<50} | {:<14} |",
+                    id, name, version, summary, download_count
+                )
             }
-            ModRow::Data { id, name, version, summary, download_count } => {
+            ModRow::Data {
+                id,
+                name,
+                version,
+                summary,
+                download_count,
+            } => {
                 let name_rows_words = name.split_whitespace();
                 let summary_rows_words = summary.split_whitespace();
                 let version_rows_words = version.split_whitespace();
 
-                let mut name_rows : Vec<String> = Vec::new();
-                let mut summary_rows : Vec<String> = Vec::new();
-                let mut version_rows : Vec<String> = Vec::new();
-                let mut line_rows : Vec<String> = Vec::new();
+                let mut name_rows: Vec<String> = Vec::new();
+                let mut summary_rows: Vec<String> = Vec::new();
+                let mut version_rows: Vec<String> = Vec::new();
+                let mut line_rows: Vec<String> = Vec::new();
 
                 name_rows.push(String::new());
                 Self::wrap_field_line(name_rows_words, &mut name_rows, 30);
@@ -63,15 +90,36 @@ impl ModRow {
                 version_rows.push(String::new());
                 Self::wrap_field_line(version_rows_words, &mut version_rows, 30);
 
-                let num_rows = std::cmp::max(std::cmp::max(name_rows.len(), summary_rows.len()), version_rows.len());
+                let num_rows = std::cmp::max(
+                    std::cmp::max(name_rows.len(), summary_rows.len()),
+                    version_rows.len(),
+                );
                 for i in 0..num_rows {
-                    let name = if i < name_rows.len() { &name_rows[i] } else { "" };
-                    let summary = if i < summary_rows.len() { &summary_rows[i] } else { "" };
-                    let version = if i < version_rows.len() { &version_rows[i] } else { "" };
-                    if i == 0 {
-                        line_rows.push(format!("| {:<12} | {:<30} | {:<30} | {:<50} | {:<14} |", id, name, version, summary, download_count));
+                    let name = if i < name_rows.len() {
+                        &name_rows[i]
                     } else {
-                        line_rows.push(format!("| {:<12} | {:<30} | {:<30} | {:<50} | {:<14} |", "", name, version, summary, ""));
+                        ""
+                    };
+                    let summary = if i < summary_rows.len() {
+                        &summary_rows[i]
+                    } else {
+                        ""
+                    };
+                    let version = if i < version_rows.len() {
+                        &version_rows[i]
+                    } else {
+                        ""
+                    };
+                    if i == 0 {
+                        line_rows.push(format!(
+                            "| {:<12} | {:<30} | {:<30} | {:<50} | {:<14} |",
+                            id, name, version, summary, download_count
+                        ));
+                    } else {
+                        line_rows.push(format!(
+                            "| {:<12} | {:<30} | {:<30} | {:<50} | {:<14} |",
+                            "", name, version, summary, ""
+                        ));
                     }
                 }
                 line_rows.join("\n")
@@ -79,7 +127,11 @@ impl ModRow {
         }
     }
 
-    fn wrap_field_line(version_rows_words: SplitWhitespace, summary_rows: &mut Vec<String>, length: usize) {
+    fn wrap_field_line(
+        version_rows_words: SplitWhitespace,
+        summary_rows: &mut Vec<String>,
+        length: usize,
+    ) {
         for word in version_rows_words {
             if summary_rows.last().unwrap().len() + word.len() + 1 > length {
                 summary_rows.push(word.to_string());
@@ -98,17 +150,21 @@ pub struct ModTable {
 }
 
 impl ModTable {
-    pub fn new() -> ModTable  {
-        Self {
-            rows: Vec::new(),
-        }
+    pub fn new() -> ModTable {
+        Self { rows: Vec::new() }
     }
 
     pub fn populate_mods_table(
         &mut self,
         mods: Vec<Mod>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_row(ModRow::new_header("Mod ID", "Name", "Version/Display Name", "Summary", "Download Count"));
+        self.add_row(ModRow::new_header(
+            "Mod ID",
+            "Name",
+            "Version/Display Name",
+            "Summary",
+            "Download Count",
+        ));
 
         for mod_info in mods {
             self.add_row(ModRow::new_data(
@@ -116,7 +172,7 @@ impl ModTable {
                 &mod_info.name,
                 &mod_info.latest_files[0].display_name,
                 &mod_info.summary,
-                mod_info.download_count
+                mod_info.download_count,
             ));
         }
 
@@ -127,7 +183,13 @@ impl ModTable {
         &mut self,
         mods: Vec<ModRow>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_row(ModRow::new_header("Mod ID", "Name", "Version/Display Name", "Summary", "Download Count"));
+        self.add_row(ModRow::new_header(
+            "Mod ID",
+            "Name",
+            "Version/Display Name",
+            "Summary",
+            "Download Count",
+        ));
 
         for mod_row in mods {
             self.add_row(mod_row);

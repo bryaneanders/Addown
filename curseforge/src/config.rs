@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
+use dotenvy::dotenv;
 use std::env;
 use std::sync::OnceLock;
-use dotenvy::dotenv;
 
 #[derive(Debug)]
 pub struct CurseForgeConfig {
@@ -20,8 +20,8 @@ impl CurseForgeConfig {
 
         Ok(CurseForgeConfig {
             api_key: api_key,
-            wow_path: "/home/dev/world_of_warcraft".to_string(),
-            path_suffix: "/_retail_/Interface/AddOns".to_string()
+            wow_path: "/Applications/World of Warcraft".to_string(),
+            path_suffix: "/_retail_/Interface/AddOns".to_string(),
         })
     }
 

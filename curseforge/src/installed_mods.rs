@@ -3,9 +3,9 @@ use crate::mod_table::*;
 
 pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
     let config = CurseForgeConfig::get();
-    let addon_path  = config.wow_path.to_owned() + config.path_suffix.as_str();
+    let addon_path = config.wow_path.to_owned() + config.path_suffix.as_str();
 
-    let mut installed_mods : Vec<ModRow> = Vec::new();
+    let mut installed_mods: Vec<ModRow> = Vec::new();
     println!("{}", addon_path);
     // list directories in addon_path
     let entries = std::fs::read_dir(addon_path)?;
@@ -16,11 +16,12 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
             let files = std::fs::read_dir(entry.path())?;
             for file in files {
                 let file = file?;
-                if file.file_name().into_string().unwrap().as_str() == entry.file_name().into_string().unwrap() + ".toc" ||
-                    file.file_name().into_string().unwrap().as_str() == entry.file_name().into_string().unwrap() + "_Mainline.toc"{
-
-
-                    let mut project_id= 0;
+                if file.file_name().into_string().unwrap().as_str()
+                    == entry.file_name().into_string().unwrap() + ".toc"
+                    || file.file_name().into_string().unwrap().as_str()
+                        == entry.file_name().into_string().unwrap() + "_Mainline.toc"
+                {
+                    let mut project_id = 0;
                     let download_count = 0;
                     let mut title = String::new();
                     let mut version = String::new();
@@ -34,14 +35,20 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
                             let project_id_str = line.replace("## X-Curse-Project-ID:", "");
                             let project_id_result = project_id_str.trim().parse::<u32>();
                             match project_id_result {
-                                Ok(id) => { project_id = id },
-                                Err(_) => { project_id = 0; },
+                                Ok(id) => project_id = id,
+                                Err(_) => {
+                                    project_id = 0;
+                                }
                             }
                             //println!("    - Curse Project ID: {}", project_id);
                         }
                         if line.starts_with("## Title:") {
                             title = line.replace("## Title:", "").trim().to_string();
-                            title = title.replace("[|cffeda55f", "").replace("|cffFFFFFFM", "").replace("|r", "").replace("]", "");
+                            title = title
+                                .replace("[|cffeda55f", "")
+                                .replace("|cffFFFFFFM", "")
+                                .replace("|r", "")
+                                .replace("]", "");
                             //println!("    - Title: {}", title);
                         }
                         if line.starts_with("## Version:") {
@@ -54,7 +61,8 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
 
-                    let mod_row = ModRow::new_data(project_id, title, version, notes, download_count);
+                    let mod_row =
+                        ModRow::new_data(project_id, title, version, notes, download_count);
                     installed_mods.push(mod_row);
                 }
             }
@@ -67,4 +75,3 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-

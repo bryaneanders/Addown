@@ -1,16 +1,18 @@
+use curseforge::cli_loop::{
+    crate_rustyline_background_loop, create_ctrlc_background_loop, main_loop, CtrlCState,
+    InputEvent,
+};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use curseforge::cli_loop::{crate_rustyline_background_loop, create_ctrlc_background_loop, main_loop, CtrlCState, InputEvent};
 
 mod config;
 mod curseforge_api;
 mod installed_mods;
-mod models;
 mod mod_table;
+mod models;
 
 #[tokio::main]
 async fn main() {
-
     println!("Welcome to Kubellm Interactive CLI!");
     println!("Type 'help' for available commands or 'exit' to quit.");
     println!("Press Ctrl+C twice quickly to force exit.\n");

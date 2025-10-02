@@ -1,12 +1,10 @@
+use crate::config::CurseForgeConfig;
+use crate::models::{Game, GameArrayResponse, GameResponse, Mod, ModArrayResponse, ModResponse};
 use std::fs::File;
 use std::io;
-use crate::models::{Game, GameResponse, GameArrayResponse, Mod, ModArrayResponse, ModResponse};
-use crate::config::CurseForgeConfig;
 use zip::ZipArchive;
 
-pub async fn get_game_info(
-    game_id: i32,
-) -> Result<Game, Box<dyn std::error::Error>> {
+pub async fn get_game_info(game_id: i32) -> Result<Game, Box<dyn std::error::Error>> {
     let config = CurseForgeConfig::get();
     let client = reqwest::Client::new();
     let url = format!("https://api.curseforge.com/v1/games/{}", game_id);
@@ -44,9 +42,7 @@ pub async fn get_games_info() -> Result<Vec<Game>, Box<dyn std::error::Error>> {
     Ok(games)
 }
 
-pub async fn get_mod_info(
-    mod_id: u32,
-) -> Result<Mod, Box<dyn std::error::Error>> {
+pub async fn get_mod_info(mod_id: u32) -> Result<Mod, Box<dyn std::error::Error>> {
     let config = CurseForgeConfig::get();
     let client = reqwest::Client::new();
     let url = format!("https://api.curseforge.com/v1/mods/{}", mod_id);
@@ -67,8 +63,7 @@ pub async fn get_mod_info(
 pub async fn get_mod_file(
     file_id: u32,
     filename: &str,
-) -> Result<String, Box<dyn std::error::Error>>
-{
+) -> Result<String, Box<dyn std::error::Error>> {
     let config = CurseForgeConfig::get();
     let file_id_str = file_id.to_string();
     let file_path = &(config.addons_path() + "/" + filename);

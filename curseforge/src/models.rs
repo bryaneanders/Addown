@@ -44,7 +44,6 @@ pub struct ModArrayResponse {
     pub pagination: Pagination,
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Mod {
     pub screenshots: Vec<Screenshot>,
