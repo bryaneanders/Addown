@@ -1,13 +1,13 @@
+use crate::{curseforge_api, game_version, installed_mods, mod_table};
+use clap::{Parser, Subcommand};
+use rustyline::error::ReadlineError;
+use rustyline::DefaultEditor;
 use std::io;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
-use clap::{Parser, Subcommand};
-use rustyline::error::ReadlineError;
-use rustyline::DefaultEditor;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::task::JoinHandle;
-use crate::{curseforge_api, installed_mods, mod_table};
 
 #[derive(Debug)]
 pub enum InputEvent {
@@ -61,41 +61,32 @@ enum Commands {
     /// Search for addons
     Search {
         /// The exact name of the addon to search for
-        #[arg(short = 'n', long = "name")]
+        #[arg(short = 'f', long = "filter")]
         name: Option<String>,
-        /// The id of addons to search for
-        #[arg(short = 'i', long = "id")]
-        id: Option<String>,
     },
     /// Get addons
     Get {
-        /// The exact name of the addon to get
-        #[arg(short = 'n', long = "name")]
-        name: Option<String>,
         /// The id(s) of addons to get
         #[arg(short = 'i', long = "ids")]
         ids: Option<String>,
     },
     /// Delete addons
     Delete {
-        /// The exact name of the addon to delete
-        #[arg(short = 'n', long = "name")]
-        name: Option<String>,
         /// The id(s) of addons to delete
         #[arg(short = 'i', long = "ids")]
         ids: Option<String>,
     },
     /// Update addons
     Update {
-        /// The exact name of the addon to update
-        #[arg(short = 'n', long = "name")]
-        name: Option<String>,
         /// The id(s) of addons to update
         #[arg(short = 'i', long = "ids")]
         ids: Option<String>,
         /// boolean to update all addons
         #[arg(short = 'a', long = "all")]
         all: bool,
+        /// boolean to force update addons
+        #[arg(short = 'f', long = "force")]
+        force: bool,
     },
     /// Update all addons
     Exit,
@@ -250,7 +241,6 @@ pub async fn execute_command(
     command: Commands,
     ctrl_c_state: &Arc<Mutex<CtrlCState>>,
 ) -> anyhow::Result<bool> {
-
     {
         let mut state = ctrl_c_state.lock().unwrap();
         state.command_in_progress = true;
@@ -273,76 +263,72 @@ pub async fn execute_command(
             reset_prompt(ctrl_c_state).await;
             Ok(true)
         }
-        Commands::Search { name, id } => {
-            if let Some(name) = name {
-                println!("Searching for addon with name: {}", name);
-                let game_mods = curseforge_api::search_mods(1, &name).await.unwrap();
+        Commands::Search { name: filter } => {
+            if let Some(filter) = filter {
+                println!("Searching for addon with filter: {}", filter);
+                let game_mods = curseforge_api::search_mods(1, &filter).await.unwrap();
                 println!("\nSearch Results ({} total):", game_mods.len());
                 for game_mod in &game_mods {
-                    println!("  - {} (ID: {}). About: {}", game_mod.name, game_mod.id, game_mod.summary);
+                    println!(
+                        "  - {} (ID: {}). About: {}",
+                        game_mod.name, game_mod.id, game_mod.summary
+                    );
                 }
 
                 let mut table = mod_table::ModTable::new();
                 table.populate_mods_table(game_mods).unwrap();
                 table.printstd();
-            } else if let Some(id) = id {
-                println!("Searching for addon with id: {}", id);
-                // Call your search by id function here
             } else {
-                println!("Please provide either a name or an id to search for.");
+                println!("Please provide either a text filter to search for");
             }
 
             reset_prompt(ctrl_c_state).await;
             Ok(true)
         }
-        Commands::Get { name, ids } => {
-            if let Some(name) = name {
-                println!("Getting addon with name: {}", name);
-                // Call your get by name function here
-            } else if let Some(ids) = ids {
+        Commands::Get { ids } => {
+            if let Some(ids) = ids {
                 println!("Getting addons with ids: {}", ids);
                 for id in ids.split(',') {
                     if let Ok(id_num) = id.trim().parse::<u32>() {
                         let game_mod = curseforge_api::get_mod_info(id_num).await.unwrap();
+                        // Get the right file for the game version
+                        let mod_file =
+                            game_version::get_mod_file_for_game_version(&game_mod).unwrap();
                         // Download the file
-                        curseforge_api::get_mod_file(game_mod.latest_files[0].id, &game_mod.latest_files[0].file_name).await.unwrap();
+                        curseforge_api::get_mod_file(mod_file.id, &*mod_file.file_name)
+                            .await
+                            .unwrap();
                     } else {
                         println!("Invalid id: {}", id);
                     }
                 }
             } else {
-                println!("Please provide either a name or ids to get.");
+                println!("Please provide addon ids to get.");
             }
 
             reset_prompt(ctrl_c_state).await;
             Ok(true)
         }
-        Commands::Delete { name, ids } => {
-            if let Some(name) = name {
-                println!("Deleting addon with name: {}", name);
-                // Call your delete by name function here
-            } else if let Some(ids) = ids {
+        Commands::Delete { ids } => {
+            if let Some(ids) = ids {
                 println!("Deleting addons with ids: {}", ids);
                 // Call your delete by ids function here
             } else {
-                println!("Please provide either a name or ids to delete.");
+                println!("Please provide addon ids to delete.");
             }
 
             reset_prompt(ctrl_c_state).await;
             Ok(true)
         }
-        Commands::Update { name, ids, all } => {
+        Commands::Update { ids, all, force } => {
             if all {
                 println!("Updating all addons...");
                 // Call your update all function here
-            } else if let Some(name) = name {
-                println!("Updating addon with name: {}", name);
-                // Call your update by name function here
             } else if let Some(ids) = ids {
                 println!("Updating addons with ids: {}", ids);
                 // Call your update by ids function here
             } else {
-                println!("Please provide either a name, ids, or use --all to update.");
+                println!("Please provide either ids or use --all to update addons.");
             }
 
             reset_prompt(ctrl_c_state).await;
@@ -530,20 +516,15 @@ pub fn create_ctrlc_background_loop(
     });
 }
 
-
 fn show_help() {
     println!("Available commands:");
-    println!("  init                 Initialize WoW installation");
-    println!("  view                 View installed addons");
-    println!("  search -n <name>    Search for addon by name");
-    println!("  search -i <id>      Search for addon by id");
-    println!("  get -n <name>       Get addon by name");
-    println!("  get -i <ids>        Get addons by ids (comma-separated)");
-    println!("  delete -n <name>    Delete addon by name");
-    println!("  delete -i <ids>     Delete addons by ids (comma-separated)");
-    println!("  update -n <name>    Update addon by name");
-    println!("  update -i <ids>     Update addons by ids (comma-separated)");
-    println!("  update -a           Update all addons");
-    println!("  help                Show this help message");
-    println!("  exit, quit         Exit the CLI");
+    println!("  init                   Initialize WoW installation");
+    println!("  view                   View installed addons");
+    println!("  search -f <filter>     Search for addon by filter");
+    println!("  get -i <ids>           Get addons with ids (comma-separated)");
+    println!("  delete -i <ids>        Delete addons with ids (comma-separated)");
+    println!("  update -i <ids> [-f]   Update addons with ids (comma-separated). Force to reinstall even if no update is needed");
+    println!("  update -a [-f]         Update all addons. For to reinstall all addons even those that don't need updates.");
+    println!("  help                   Show this help message");
+    println!("  exit, quit             Exit the CLI");
 }
