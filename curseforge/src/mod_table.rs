@@ -191,6 +191,12 @@ impl ModTable {
             "Download Count",
         ));
 
+        let mut mods = mods;
+        mods.sort_by_key(|mod_row| match mod_row {
+            ModRow::Header { name, .. } => name.clone(),
+            ModRow::Data { name, .. } => name.clone(),
+        });
+
         for mod_row in mods {
             self.add_row(mod_row);
         }
