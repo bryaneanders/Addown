@@ -8,7 +8,11 @@ static GAME_VERSION: Lazy<Result<String, String>> =
 
 fn load_game_version() -> Result<String, Box<dyn std::error::Error>> {
     let config = CurseForgeConfig::get();
-    let version_file_path = if fs::exists(config.wow_path.to_string() + "/_retail_/World of Warcraft.app/Contents/Info.plist").unwrap() {
+    let version_file_path = if fs::exists(
+        config.wow_path.to_string() + "/_retail_/World of Warcraft.app/Contents/Info.plist",
+    )
+    .unwrap()
+    {
         config.wow_path.to_string() + "/_retail_/World of Warcraft.app/Contents/Info.plist"
     } else {
         config.wow_path.to_string() + "/.build.info"
