@@ -208,13 +208,23 @@ impl ModTable {
         self.rows.push(row);
     }
 
-    pub fn printstd(&self) {
-        let blank_row = "|--------------|--------------------------------|--------------------------------|----------------------------------------------------|----------------|";
-
-        println!("{}", blank_row);
-        for row in &self.rows {
-            println!("{}", row.format_row());
-            println!("{}", blank_row);
+    pub fn print_table(&self) {
+        let table = self.format_table();
+        for line in table {
+            print!("{}", line);
         }
+    }
+
+    pub fn format_table(&self) -> Vec<String> {
+        let blank_row = "|--------------|--------------------------------|--------------------------------|----------------------------------------------------|----------------|";
+        let mut table = Vec::new();
+
+        table.push(format!("{}\n", blank_row));
+        for row in &self.rows {
+            table.push(format!("{}\n", row.format_row()));
+            table.push(format!("{}\n", blank_row));
+        }
+
+        table
     }
 }

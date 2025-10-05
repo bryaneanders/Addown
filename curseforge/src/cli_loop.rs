@@ -277,7 +277,7 @@ pub async fn execute_command(
 
                 let mut table = mod_table::ModTable::new();
                 table.populate_mods_table(game_mods).unwrap();
-                table.printstd();
+                table.print_table();
             } else {
                 println!("Please provide either a text filter to search for");
             }
