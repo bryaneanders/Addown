@@ -120,6 +120,7 @@ pub async fn get_installed_mods() -> Result<(), Box<dyn std::error::Error>> {
     let mut mod_table = ModTable::new();
     mod_table.populate_installed_mods_table(installed_mods)?;
     mod_table.print_table();
+    mod_table.print_table_view();
 
     Ok(())
 }

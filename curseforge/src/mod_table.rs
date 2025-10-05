@@ -1,6 +1,8 @@
 use crate::models::Mod;
 use std::str::SplitWhitespace;
 
+const TABLE_VIEW_ROWS: usize = 20;
+
 pub enum ModRow {
     Header {
         id: String,
@@ -147,11 +149,19 @@ impl ModRow {
 
 pub struct ModTable {
     rows: Vec<ModRow>,
+    formatted_rows: Vec<String>,
+    row_view_count: usize,
+    row_index: usize,
 }
 
 impl ModTable {
     pub fn new() -> ModTable {
-        Self { rows: Vec::new() }
+        Self {
+            rows: Vec::new(),
+            formatted_rows: Vec::new(),
+            row_view_count: TABLE_VIEW_ROWS,
+            row_index: 0
+        }
     }
 
     pub fn populate_mods_table(
@@ -201,6 +211,8 @@ impl ModTable {
             self.add_row(mod_row);
         }
 
+        self.format_table();
+
         Ok(())
     }
 
@@ -208,23 +220,29 @@ impl ModTable {
         self.rows.push(row);
     }
 
-    pub fn print_table(&self) {
-        let table = self.format_table();
-        for line in table {
-            print!("{}", line);
+    pub fn print_table(&mut self) {
+        for line in &self.formatted_rows {
+            println!("{}", line);
         }
     }
 
-    pub fn format_table(&self) -> Vec<String> {
-        let blank_row = "|--------------|--------------------------------|--------------------------------|----------------------------------------------------|----------------|";
-        let mut table = Vec::new();
-
-        table.push(format!("{}\n", blank_row));
-        for row in &self.rows {
-            table.push(format!("{}\n", row.format_row()));
-            table.push(format!("{}\n", blank_row));
+    pub fn print_table_view(&mut self) {
+        let end_index = std::cmp::min(self.row_index + self.row_view_count, self.formatted_rows.len());
+        println!("\nPrinting rows {} to {} of {}", self.row_index, end_index-1, self.formatted_rows.len());
+        for line in &self.formatted_rows[self.row_index..end_index-1] {
+            println!("{}", line);
         }
+        self.row_index = end_index;
+    }
 
-        table
+    pub fn format_table(&mut self) {
+        let blank_row = "|--------------|--------------------------------|--------------------------------|----------------------------------------------------|----------------|";
+        self.formatted_rows.clear();
+
+        self.formatted_rows.push(format!("{}", blank_row));
+        for row in &self.rows {
+            self.formatted_rows.push(format!("{}", row.format_row()));
+            self.formatted_rows.push(format!("{}", blank_row));
+        }
     }
 }
