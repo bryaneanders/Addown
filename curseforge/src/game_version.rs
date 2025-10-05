@@ -50,14 +50,16 @@ fn get_version_from_info_plist(plist_path: &String) -> Result<String, Box<dyn st
     Err("Version not found in plist".into())
 }
 
-fn get_version_from_build_info(build_info_path: &String) -> Result<String, Box<dyn std::error::Error>> {
+fn get_version_from_build_info(
+    build_info_path: &String,
+) -> Result<String, Box<dyn std::error::Error>> {
     let content = fs::read_to_string(&build_info_path)?;
     let mut header_row = true;
     let mut version_header_index = 0;
     for line in content.lines() {
         if header_row {
             header_row = false;
-            let headers: Vec<&str> =line.split_whitespace().collect();
+            let headers: Vec<&str> = line.split_whitespace().collect();
             for (i, header) in headers.iter().enumerate() {
                 if *header == "Version!STRING:0" {
                     version_header_index = i;
@@ -73,10 +75,14 @@ fn get_version_from_build_info(build_info_path: &String) -> Result<String, Box<d
         if columns.len() > version_header_index {
             let version = columns[version_header_index];
             if !version.is_empty() {
-                return Ok(version.rfind('.').map(|pos| &version[..pos]).unwrap_or(version).parse().unwrap());
+                return Ok(version
+                    .rfind('.')
+                    .map(|pos| &version[..pos])
+                    .unwrap_or(version)
+                    .parse()
+                    .unwrap());
             }
         }
-
     }
 
     Err("Version not found in build.info".into())
