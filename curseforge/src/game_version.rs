@@ -8,8 +8,20 @@ static GAME_VERSION: Lazy<Result<String, String>> =
 
 fn load_game_version() -> Result<String, Box<dyn std::error::Error>> {
     let config = CurseForgeConfig::get();
-    let plist_path =
-        config.wow_path.to_string() + "/_retail_/World of Warcraft.app/Contents/Info.plist";
+    let version_file_path = if fs::exists(config.wow_path.to_string() + "/_retail_/World of Warcraft.app/Contents/Info.plist").unwrap() {
+        config.wow_path.to_string() + "/_retail_/World of Warcraft.app/Contents/Info.plist"
+    } else {
+        config.wow_path.to_string() + "/.build.info"
+    };
+
+    if version_file_path.ends_with("Info.plist") {
+        get_version_from_info_plist(&version_file_path)
+    } else {
+        get_version_from_build_info(&version_file_path)
+    }
+}
+
+fn get_version_from_info_plist(plist_path: &String) -> Result<String, Box<dyn std::error::Error>> {
     let xml_content = fs::read_to_string(&plist_path)?;
     let doc = Document::parse_with_options(
         &xml_content,
@@ -36,6 +48,38 @@ fn load_game_version() -> Result<String, Box<dyn std::error::Error>> {
     }
 
     Err("Version not found in plist".into())
+}
+
+fn get_version_from_build_info(build_info_path: &String) -> Result<String, Box<dyn std::error::Error>> {
+    let content = fs::read_to_string(&build_info_path)?;
+    let mut header_row = true;
+    let mut version_header_index = 0;
+    for line in content.lines() {
+        if header_row {
+            header_row = false;
+            let headers: Vec<&str> =line.split_whitespace().collect();
+            for (i, header) in headers.iter().enumerate() {
+                if *header == "Version!STRING:0" {
+                    version_header_index = i;
+                    break;
+                }
+            }
+            continue;
+        } else if version_header_index == 0 {
+            return Err("Version not found in .build.info".into());
+        }
+
+        let columns: Vec<&str> = line.split_whitespace().collect();
+        if columns.len() > version_header_index {
+            let version = columns[version_header_index];
+            if !version.is_empty() {
+                return Ok(version.rfind('.').map(|pos| &version[..pos]).unwrap_or(version).parse().unwrap());
+            }
+        }
+
+    }
+
+    Err("Version not found in build.info".into())
 }
 
 fn get_game_version() -> Result<&'static str, Box<dyn std::error::Error>> {
